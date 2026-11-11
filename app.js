@@ -74,7 +74,7 @@ function answerTo(command){
   else if(q.includes('fecha')||q.includes('que dia es')||q.includes('dia de hoy')) answer='Hoy es '+date.textContent+'.';
   else if(q.includes('hola')||q.includes('buenos dias')||q.includes('buenas tardes')||q.includes('buenas noches')) answer='Hola'+(memory.name?', '+memory.name:'')+'. Estoy listo para ayudarte.';
   else if(q.includes('tu nombre')||q.includes('quien eres')) answer='Soy JARVIS, tu asistente personal local.';
-  else if(q.includes('ayuda')||q.includes('que puedes hacer')) answer='Puedo decirte la hora y fecha, hacer operaciones, guardar notas y recordar datos en este dispositivo. También puedo mantener el contexto de esta conversación mientras la página esté abierta.';
+  else if(q.includes('ayuda')||q.includes('que puedes hacer')) answer='Puedo decirte la hora y fecha, hacer operaciones, guardar notas y recordar datos en este dispositivo. Mis respuestas son funciones locales, no una IA conectada a internet.';
   else if(q.includes('gracias')) answer='A tu servicio.';
   else if(q.includes('como estas')) answer='Todos mis sistemas están funcionando. ¿En qué te ayudo?';
   else if(q.includes('que es la gravedad')) answer='La gravedad es la fuerza de atracción entre los cuerpos que tienen masa. En la Tierra nos mantiene sobre el suelo.';
