@@ -63,17 +63,26 @@ const APP_LINKS={
   tiktok:{names:['tiktok','tik tok'],package:'com.zhiliaoapp.musically',url:'https://www.tiktok.com/'}
 };
 function launchRequestedApp(q){
-  const match=q.match(/^(?:jarvis[, ]*)?(?:abre|abrir|inicia|iniciar|ejecuta|ve a)\s+(.+?)[.! ]*$/);
+  const match=q.match(/^(?:jarvis[, ]*)?(?:abre|abrir|inicia|iniciar|ejecuta|ve a)\s+(?:la aplicacion de\s+|la app de\s+)?(.+?)[.! ]*$/);
   if(!match)return false;
   const requested=match[1].trim();
   const app=Object.entries(APP_LINKS).find(([key,item])=>key===requested||item.names.includes(requested));
   if(!app)return false;
   const [name,details]=app;
   const fallback=encodeURIComponent(details.url);
-  const intent='intent://'+details.url.replace(/^https?:\/\//,'')+'#Intent;scheme=https;package='+details.package+';S.browser_fallback_url='+fallback+';end';
-  const response='Intentando abrir '+name+'. Si está instalada, Android la abrirá; si no, se abrirá su página web.';
-  show(response);speak(response);
-  window.location.href=intent;
+  const intent='intent://#Intent;action=android.intent.action.MAIN;category=android.intent.category.LAUNCHER;package='+details.package+';S.browser_fallback_url='+fallback+';end';
+  show('Encontré '+name+'. Toca el botón ABRIR '+name.toUpperCase()+' para que Android intente iniciar la aplicación.');
+  let action=document.querySelector('#open-app-action');
+  if(!action){
+    action=document.createElement('button');
+    action.id='open-app-action';
+    action.type='button';
+    action.className='app-launch-button';
+    document.querySelector('.buttons').appendChild(action);
+  }
+  action.textContent='ABRIR '+name.toUpperCase();
+  action.hidden=false;
+  action.onclick=()=>{window.location.href=intent;};
   return true;
 }
 
