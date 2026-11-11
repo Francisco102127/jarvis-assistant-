@@ -50,11 +50,38 @@ function calculate(q){
   switch(match[2]){case '+':result=a+b;break;case '-':result=a-b;break;case 'x':case '*':result=a*b;break;case '/':case '÷':if(b===0)return 'No se puede dividir entre cero.';result=a/b;break;}
   return 'El resultado es '+Number(result.toFixed(8))+'.';
 }
+const APP_LINKS={
+  whatsapp:{names:['whatsapp','watsap','guasap'],package:'com.whatsapp',url:'https://www.whatsapp.com/'},
+  youtube:{names:['youtube','you tube'],package:'com.google.android.youtube',url:'https://www.youtube.com/'},
+  chrome:{names:['chrome','google chrome'],package:'com.android.chrome',url:'https://www.google.com/chrome/'},
+  maps:{names:['maps','google maps','mapas'],package:'com.google.android.apps.maps',url:'https://maps.google.com/'},
+  gmail:{names:['gmail','correo'],package:'com.google.android.gm',url:'https://mail.google.com/'},
+  instagram:{names:['instagram','insta'],package:'com.instagram.android',url:'https://www.instagram.com/'},
+  spotify:{names:['spotify'],package:'com.spotify.music',url:'https://open.spotify.com/'},
+  telegram:{names:['telegram'],package:'org.telegram.messenger',url:'https://telegram.org/'},
+  facebook:{names:['facebook','face'],package:'com.facebook.katana',url:'https://www.facebook.com/'},
+  tiktok:{names:['tiktok','tik tok'],package:'com.zhiliaoapp.musically',url:'https://www.tiktok.com/'}
+};
+function launchRequestedApp(q){
+  const match=q.match(/^(?:jarvis[, ]*)?(?:abre|abrir|inicia|iniciar|ejecuta|ve a)\\s+(.+?)[.! ]*$/);
+  if(!match)return false;
+  const requested=match[1].trim();
+  const app=Object.entries(APP_LINKS).find(([key,item])=>key===requested||item.names.includes(requested));
+  if(!app)return false;
+  const [name,details]=app;
+  const fallback=encodeURIComponent(details.url);
+  const intent='intent://'+details.url.replace(/^https?:\\/\\//,'')+'#Intent;scheme=https;package='+details.package+';S.browser_fallback_url='+fallback+';end';
+  const response='Intentando abrir '+name+'. Si está instalada, Android la abrirá; si no, se abrirá su página web.';
+  show(response);speak(response);
+  window.location.href=intent;
+  return true;
+}
+
 function answerTo(command){
   const q=normalize(command);
   let answer='';
   const memory=readMemory();
-  history.push({role:'user',content:command});
+  history.push({role:'user',content:command});\n  if(launchRequestedApp(q)) return;
   if(q.includes('olvida todo')||q.includes('borra tu memoria')){
     localStorage.removeItem(MEMORY_KEY);
     answer='He borrado los datos que había guardado en este dispositivo.';
