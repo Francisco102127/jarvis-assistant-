@@ -29,16 +29,38 @@ function saveMemory(data){
   try{localStorage.setItem(MEMORY_KEY,JSON.stringify(data));}
   catch{message.textContent='No pude guardar la memoria en este navegador.';}
 }
-// Voz de asistente futurista: tono sereno y claro. La voz disponible
-// depende de las voces instaladas en Android/Chrome; no replica una voz de película.
+// Voz futurista inspirada en asistentes de ciencia ficción. No imita la voz exacta de una actriz.
+const VOICE_KEY='jarvis-voice-name-v1';
+let chosenVoiceName=localStorage.getItem(VOICE_KEY)||'';
+function spanishVoices(){
+  if(!('speechSynthesis' in window)) return [];
+  return window.speechSynthesis.getVoices().filter(v=>/^es(-|_)/i.test(v.lang));
+}
 function chooseFridayStyleVoice(){
-  if(!('speechSynthesis' in window)) return null;
-  const voices=window.speechSynthesis.getVoices();
-  const spanish=voices.filter(voice=>/^es(-|_)/i.test(voice.lang));
-  return spanish.find(voice=>/female|femenina|google español|microsoft.*(helena|elvira|sabina)|monica|paulina|lucia|maria/i.test(voice.name))
-    || spanish.find(voice=>/es-MX|es-419/i.test(voice.lang))
-    || spanish[0]
-    || null;
+  const voices=spanishVoices();
+  return voices.find(v=>v.name===chosenVoiceName)
+    || voices.find(v=>/female|femenina|google español|microsoft.*(helena|elvira|sabina)|monica|paulina|lucia|maria/i.test(v.name))
+    || voices.find(v=>/es-MX|es-419/i.test(v.lang))
+    || voices[0]||null;
+}
+function populateVoiceChoices(){
+  const select=document.querySelector('#voice-select');
+  if(!select||!('speechSynthesis' in window)) return;
+  const voices=spanishVoices();
+  select.innerHTML='';
+  if(!voices.length){
+    const option=document.createElement('option');
+    option.value='';option.textContent='No hay voces en español disponibles';
+    select.appendChild(option);return;
+  }
+  voices.forEach(voice=>{
+    const option=document.createElement('option');
+    option.value=voice.name;
+    option.textContent=voice.name+' ('+voice.lang+')';
+    select.appendChild(option);
+  });
+  const preferred=voices.find(v=>v.name===chosenVoiceName)||chooseFridayStyleVoice();
+  if(preferred){chosenVoiceName=preferred.name;select.value=preferred.name;localStorage.setItem(VOICE_KEY,chosenVoiceName);}
 }
 function speak(text){
   if(!('speechSynthesis' in window)) return;
@@ -47,14 +69,21 @@ function speak(text){
   const voice=chooseFridayStyleVoice();
   if(voice) utterance.voice=voice;
   utterance.lang=voice?.lang||'es-MX';
-  utterance.rate=0.92;
-  utterance.pitch=1.12;
-  utterance.volume=1;
+  utterance.rate=0.92;utterance.pitch=1.12;utterance.volume=1;
   window.speechSynthesis.speak(utterance);
 }
 if('speechSynthesis' in window){
-  window.speechSynthesis.onvoiceschanged=()=>chooseFridayStyleVoice();
+  window.speechSynthesis.onvoiceschanged=populateVoiceChoices;
+  populateVoiceChoices();
 }
+document.querySelector('#voice-select')?.addEventListener('change',event=>{
+  chosenVoiceName=event.target.value;
+  localStorage.setItem(VOICE_KEY,chosenVoiceName);
+  speak('Voz del asistente actualizada. Estoy a tu servicio.');
+});
+document.querySelector('#test-voice')?.addEventListener('click',()=>{
+  speak('Hola. Soy JARVIS. Todos mis sistemas están listos. ¿En qué puedo ayudarte?');
+});
 function show(text,who='JARVIS'){
   message.textContent=(who==='TÚ'?'Tú: ':'JARVIS: ')+text;
 }
@@ -177,7 +206,7 @@ document.querySelector('#status').addEventListener('click',()=>{
   const secure=window.isSecureContext?'Conexión segura.':'Conexión no segura.';
   const voice=recognition?'Reconocimiento de voz disponible.':'Reconocimiento de voz no disponible.';
   const speech=('speechSynthesis' in window)?'Voz de respuesta disponible.':'Voz de respuesta no disponible.';
-  const info='Diagnóstico: '+secure+' '+voice+' '+speech+' Memoria local disponible.';
+  const info='Diagnóstico: '+secure+' '+voice+' '+speech+' '+spanishVoices().length+' voces en español detectadas. Memoria local disponible.';
   show(info);speak(info);
 });
 if('serviceWorker' in navigator){
