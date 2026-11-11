@@ -63,14 +63,14 @@ const APP_LINKS={
   tiktok:{names:['tiktok','tik tok'],package:'com.zhiliaoapp.musically',url:'https://www.tiktok.com/'}
 };
 function launchRequestedApp(q){
-  const match=q.match(/^(?:jarvis[, ]*)?(?:abre|abrir|inicia|iniciar|ejecuta|ve a)\\s+(.+?)[.! ]*$/);
+  const match=q.match(/^(?:jarvis[, ]*)?(?:abre|abrir|inicia|iniciar|ejecuta|ve a)\s+(.+?)[.! ]*$/);
   if(!match)return false;
   const requested=match[1].trim();
   const app=Object.entries(APP_LINKS).find(([key,item])=>key===requested||item.names.includes(requested));
   if(!app)return false;
   const [name,details]=app;
   const fallback=encodeURIComponent(details.url);
-  const intent='intent://'+details.url.replace(/^https?:\\/\\//,'')+'#Intent;scheme=https;package='+details.package+';S.browser_fallback_url='+fallback+';end';
+  const intent='intent://'+details.url.replace(/^https?:\/\//,'')+'#Intent;scheme=https;package='+details.package+';S.browser_fallback_url='+fallback+';end';
   const response='Intentando abrir '+name+'. Si está instalada, Android la abrirá; si no, se abrirá su página web.';
   show(response);speak(response);
   window.location.href=intent;
@@ -81,7 +81,8 @@ function answerTo(command){
   const q=normalize(command);
   let answer='';
   const memory=readMemory();
-  history.push({role:'user',content:command});\n  if(launchRequestedApp(q)) return;
+  history.push({role:'user',content:command});
+  if(launchRequestedApp(q)) return;
   if(q.includes('olvida todo')||q.includes('borra tu memoria')){
     localStorage.removeItem(MEMORY_KEY);
     answer='He borrado los datos que había guardado en este dispositivo.';
