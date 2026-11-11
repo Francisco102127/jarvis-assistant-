@@ -13,6 +13,12 @@
 <p id="message" aria-live="polite">JARVIS está listo. Puedes escribir o tocar el micrófono para hablar.</p>
 <form id="chat-form" class="chat-form"><input id="text-input" type="text" placeholder="Escribe un mensaje..." autocomplete="off" aria-label="Escribe un mensaje"><button id="send" type="submit">ENVIAR</button></form>
 <div class="buttons"><button id="mic" type="button">🎙 ACTIVAR VOZ<small>TOCA Y HABLA</small></button><button id="status" type="button">ESTADO DEL SISTEMA</button><button id="install-app" type="button" hidden>INSTALAR JARVIS</button></div>
-<p class="hint">Prueba: “¿Qué hora es?”, “calcula 25 x 4”, “recuerda que…” o “¿qué recuerdas?”.</p></section>
+<p class="hint">Prueba: “¿Qué hora es?”, “calcula 25 x 4”, “recuerda que…” o “abre WhatsApp”.</p>
+<div class="voice-panel">
+  <label for="voice-select">VOZ DEL ASISTENTE</label>
+  <select id="voice-select" aria-label="Seleccionar voz en español"><option value="">Cargando voces disponibles…</option></select>
+  <button id="test-voice" type="button">▶ PROBAR VOZ</button>
+  <small>La voz depende de las opciones instaladas en tu Android.</small>
+</div></section>
 <footer>J.A.R.V.I.S. <i>•</i> ETAPA 2 <i>•</i> ASISTENTE LOCAL</footer>
 </main><script src="./app.js"></script></body></html>
