@@ -29,12 +29,31 @@ function saveMemory(data){
   try{localStorage.setItem(MEMORY_KEY,JSON.stringify(data));}
   catch{message.textContent='No pude guardar la memoria en este navegador.';}
 }
+// Voz de asistente futurista: tono sereno y claro. La voz disponible
+// depende de las voces instaladas en Android/Chrome; no replica una voz de película.
+function chooseFridayStyleVoice(){
+  if(!('speechSynthesis' in window)) return null;
+  const voices=window.speechSynthesis.getVoices();
+  const spanish=voices.filter(voice=>/^es(-|_)/i.test(voice.lang));
+  return spanish.find(voice=>/female|femenina|google español|microsoft.*(helena|elvira|sabina)|monica|paulina|lucia|maria/i.test(voice.name))
+    || spanish.find(voice=>/es-MX|es-419/i.test(voice.lang))
+    || spanish[0]
+    || null;
+}
 function speak(text){
   if(!('speechSynthesis' in window)) return;
   window.speechSynthesis.cancel();
   const utterance=new SpeechSynthesisUtterance(text);
-  utterance.lang='es-MX'; utterance.rate=0.96; utterance.pitch=0.88;
+  const voice=chooseFridayStyleVoice();
+  if(voice) utterance.voice=voice;
+  utterance.lang=voice?.lang||'es-MX';
+  utterance.rate=0.92;
+  utterance.pitch=1.12;
+  utterance.volume=1;
   window.speechSynthesis.speak(utterance);
+}
+if('speechSynthesis' in window){
+  window.speechSynthesis.onvoiceschanged=()=>chooseFridayStyleVoice();
 }
 function show(text,who='JARVIS'){
   message.textContent=(who==='TÚ'?'Tú: ':'JARVIS: ')+text;
