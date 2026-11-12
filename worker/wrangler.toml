@@ -1,0 +1,16 @@
+name = "jarvis-ai-api"
+main = "src/index.js"
+compatibility_date = "2026-11-12"
+workers_dev = true
+
+[vars]
+ALLOWED_ORIGIN = "https://francisco102127.github.io"
+OPENAI_MODEL = "gpt-6-luna"
+
+[[ratelimits]]
+name = "JARVIS_RATE_LIMIT"
+namespace_id = "20261112"
+
+[ratelimits.simple]
+limit = 10
+period = 60
