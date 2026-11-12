@@ -90,6 +90,24 @@ function show(text,who='JARVIS'){
 function normalize(text){
   return text.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim();
 }
+
+async function askAI(){
+  const endpoint=String(window.JARVIS_CONFIG?.AI_ENDPOINT||'').trim();
+  if(!endpoint) throw new Error('AI_ENDPOINT_NOT_CONFIGURED');
+  const messages=history.slice(-10).filter(item=>
+    (item.role==='user'||item.role==='assistant')&&typeof item.content==='string'
+  ).map(item=>({role:item.role,content:item.content.slice(0,2500)}));
+  const response=await fetch(endpoint,{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({messages}),
+    signal:AbortSignal.timeout(25000)
+  });
+  const data=await response.json().catch(()=>({}));
+  if(!response.ok) throw new Error(data.error||'AI_SERVICE_ERROR');
+  if(typeof data.reply!=='string'||!data.reply.trim()) throw new Error('EMPTY_AI_REPLY');
+  return data.reply.trim().slice(0,4000);
+}
 function calculate(q){
   const match=q.match(/(?:cuanto es|calcula|calcular|resuelve)\s+(-?\d+(?:[.,]\d+)?)\s*([+x*\-÷/])\s*(-?\d+(?:[.,]\d+)?)/);
   if(!match)return null;
@@ -134,7 +152,7 @@ function launchRequestedApp(q){
   return true;
 }
 
-function answerTo(command){
+async function answerTo(command){
   const q=normalize(command);
   let answer='';
   const memory=readMemory();
@@ -166,7 +184,20 @@ function answerTo(command){
   else if(q.includes('que es la fotosintesis')) answer='La fotosíntesis es el proceso por el que las plantas usan luz solar, agua y dióxido de carbono para producir alimento y liberar oxígeno.';
   else if(q.includes('capital de mexico')) answer='La capital de México es la Ciudad de México.';
   else if(q.includes('capital de francia')) answer='La capital de Francia es París.';
-  else answer=calculate(q)||'Aún no conozco la respuesta a eso. Puedo ayudarte con cálculos, fecha, hora y notas. Para preguntas actuales o muy específicas necesitaría consultar internet.';
+  else {
+    const localAnswer=calculate(q);
+    if(localAnswer) answer=localAnswer;
+    else if(window.JARVIS_CONFIG?.AI_ENDPOINT){
+      show('Conectando con el asistente de IA de forma segura…');
+      try{answer=await askAI();}
+      catch(error){
+        console.error('JARVIS AI request failed:',error);
+        answer='No pude conectar con la IA. Revisa la conexión o la configuración del servicio e inténtalo de nuevo.';
+      }
+    }else{
+      answer='Aún no conozco la respuesta a eso. La conexión a IA todavía no está configurada; por ahora puedo ayudarte con cálculos, fecha, hora y notas.';
+    }
+  }
   history.push({role:'assistant',content:answer});
   if(history.length>20)history.splice(0,2);
   show(answer); speak(answer);
