@@ -212,3 +212,41 @@ document.querySelector('#status').addEventListener('click',()=>{
 if('serviceWorker' in navigator){
   addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(error=>console.error('Service worker:',error)));
 }
+
+
+// Instalación PWA: muestra el aviso nativo si Chrome lo ofrece.
+// Si no aparece el aviso, explica la ruta manual sin bloquear al usuario.
+const installButton=document.querySelector('#install-app');
+let deferredInstallPrompt=null;
+function refreshInstallButton(){
+  if(!installButton)return;
+  const standalone=window.matchMedia('(display-mode: standalone)').matches||window.navigator.standalone===true;
+  installButton.hidden=standalone;
+  installButton.textContent=deferredInstallPrompt?'＋ INSTALAR JARVIS':'CÓMO INSTALAR JARVIS';
+}
+window.addEventListener('beforeinstallprompt',event=>{
+  event.preventDefault();
+  deferredInstallPrompt=event;
+  refreshInstallButton();
+});
+window.addEventListener('appinstalled',()=>{
+  deferredInstallPrompt=null;
+  if(installButton)installButton.hidden=true;
+  show('JARVIS se instaló correctamente en este dispositivo.');
+});
+if(installButton){
+  installButton.hidden=false;
+  installButton.addEventListener('click',async()=>{
+    if(deferredInstallPrompt){
+      deferredInstallPrompt.prompt();
+      const choice=await deferredInstallPrompt.userChoice;
+      deferredInstallPrompt=null;
+      if(choice?.outcome==='accepted')show('Instalación aceptada. Revisa tu pantalla de inicio.');
+      else show('La instalación no se completó. Puedes intentarlo más tarde.');
+      refreshInstallButton();
+    }else{
+      show('En Chrome, abre el menú ⋮ y selecciona “Instalar aplicación” o “Añadir a pantalla de inicio”, si aparece.');
+    }
+  });
+}
+refreshInstallButton();
